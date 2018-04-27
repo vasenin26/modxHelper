@@ -19,3 +19,8 @@ You can change name space for your elements, change variable $namespace in helpe
 ```` php
 $nameSpace = 'modxParts';
 ````
+
+files for your elements will be created in folder
+
+````
+[MODX_CORE_PATH]/components/[NAME_SPACE]/[ELEMENT_TYPE]/[ELEMENT_NAME]
