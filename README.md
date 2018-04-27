@@ -12,7 +12,7 @@ helper works in the input wait mode, follow the tips to work.
 
 You can see available commands if send 'help' command or empty input.
 
-#Fast input
+# Fast input
 
 You can send all options for command after command name
 
