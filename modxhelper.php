@@ -54,10 +54,10 @@ Class ModxHelper
 
     /* commands */
 
-    public function comChunk()
+    public function comChunk(...$args)
     {
 
-        $chunkName = $this->waitInput('Input chunk name');
+        $chunkName = $this->waitInput('Input chunk name', false, $this->takeArgument($args));
 
         $chunk = $this->modx->getObject('modChunk', ['name' => $chunkName]);
         $chunkContent = '';
@@ -80,10 +80,10 @@ Class ModxHelper
 
     }
 
-    public function comSnippet()
+    public function comSnippet(...$args)
     {
 
-        $snippetName = $this->waitInput('Input snippet name');
+        $snippetName = $this->waitInput('Input snippet name', false, $this->takeArgument($args));
 
         $snippet = $this->modx->getObject('modSnippet', ['name' => $snippetName]);
         $snippetContent = '';
@@ -108,25 +108,25 @@ Class ModxHelper
 
     }
 
-    public function comTemplate()
+    public function comTemplate(...$args)
     {
 
-        $templateId = $this->waitInput('Input template id (empty for create new template)');
+        $templateId = $this->waitInput('Input template id (empty of ? for create new template)', false, $this->takeArgument($args));
 
         $template = null;
 
-        if ($templateId) {
+        if ($templateId && $templateId !== '?') {
             $template = $this->modx->getObject('modTemplate', $templateId);
         }
 
         $templateContent = '';
-        $templateFileName = $this->waitInput('Input template filename');
+        $templateFileName = $this->waitInput('Input template filename', false, $this->takeArgument($args));
 
         if (empty($template)) {
 
             $template = $this->modx->newObject('modTemplate');
 
-            $templateTitle = $this->waitInput('Input template title (empty for use template file name)');
+            $templateTitle = $this->waitInput('Input template title (empty for use template file name)', false, $this->takeArgument($args));
             $template->templatename = empty($templateTitle) ? $templateFileName : $templateTitle;
             $template->description = '';
 
@@ -146,12 +146,12 @@ Class ModxHelper
 
     }
 
-    public function comClear()
+    public function comClear(...$args)
     {
-        return $this->comClearCache();
+        return $this->comClearCache(...$args);
     }
 
-    public function comClearCache()
+    public function comClearCache(...$args)
     {
 
         $delFolder = function ($dir) use (&$delFolder) {
@@ -191,8 +191,12 @@ Class ModxHelper
         return $string;
     }
 
-    private function waitInput($message, $slice = false)
+    private function waitInput($message, $slice = false, $input = null)
     {
+
+        if(!is_null($input)){
+            return $input;
+        }
 
         echo "\n$message\n--> ";
 
@@ -227,7 +231,26 @@ Class ModxHelper
         return 'core/components/' . $relativePath;
     }
 
-    private function say($message){
+    private function say($message)
+    {
         echo "$message\n";
+    }
+
+    private function takeArgument(&$args)
+    {
+
+        if (!is_array($args)) {
+            return null;
+        }
+
+        $arg = current($args);
+
+        if($arg === false){
+            return null;
+        }
+
+        next($args);
+
+        return $arg;
     }
 }

@@ -12,6 +12,28 @@ helper works in the input wait mode, follow the tips to work.
 
 You can see available commands if send 'help' command or empty input.
 
+#Fast input
+
+You can send all options for command after command name
+
+## Example create chunk 
+````
+D:\www\projectfolder>php modxhelper.php
+
+Hi, i'm ModHelper. Input command
+--> chunk test
+Chunk created
+````
+
+## Example create new template
+````
+D:\www\projectfolder>php modxhelper.php
+
+Hi, i'm ModHelper. Input command
+--> template ? test TestName
+Template created
+````
+
 # Elements namespace
 
 You can change name space for your elements, change variable $namespace in helper file
