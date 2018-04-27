@@ -8,7 +8,7 @@ if (!defined('MODX_CONFIG_KEY')) {
 }
 require_once(MODX_CORE_PATH . 'model/modx/modx.class.php');
 
-$nameSpace = 'dubai';
+$nameSpace = 'modxParts';
 
 (new ModxHelper($nameSpace))->waitCommand();
 
