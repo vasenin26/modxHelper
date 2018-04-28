@@ -175,20 +175,20 @@ Class ModxHelper
         $nameSpace = $this->waitInput("Input namespace (empty for register default namespace ($this->nameSpace)",
             false, $this->takeArgument($args));
 
-        if(empty($nameSpace)){
+        if (empty($nameSpace)) {
             $nameSpace = $this->nameSpace;
         }
 
         $nameSpaceObject = $this->modx->getObject('modNamespace', $nameSpace);
 
-        if(empty($nameSpaceObject)){
+        if (empty($nameSpaceObject)) {
             $nameSpaceObject = $this->modx->newObject('modNamespace');
             $nameSpaceObject->name = $nameSpace;
         }
 
         $nameSpaceObject->path = '{core_path}/components/' . $nameSpace;
 
-        if(!is_dir(MODX_CORE_PATH . 'components/' . $nameSpace)){
+        if (!is_dir(MODX_CORE_PATH . 'components/' . $nameSpace)) {
             mkdir(MODX_CORE_PATH . 'components/' . $nameSpace, 0700, true);
             $this->say('Namespace folder was created');
         }
@@ -196,6 +196,56 @@ Class ModxHelper
         $nameSpaceObject->save();
 
         $this->say("Namespace [$nameSpace] was registered");
+
+    }
+
+    public function comLexicon(...$args)
+    {
+
+        $lang = $templateFileName = $this->waitInput('Input language code', false, $this->takeArgument($args));
+        if(empty($lang)){
+            $this->say("Language must by set. Exit");
+            exit;
+        }
+
+        $theme = $templateFileName = $this->waitInput('Input theme name [default is empty]', false, $this->takeArgument($args));
+
+        if(empty($theme)) $theme = 'default';
+
+        $file = "lexicon/$lang/$theme.inc.php";
+
+        if (!$this->fileExist($file)) {
+            $this->createFile($file, "<?php\n\n");
+        }
+
+        $fd = $this->getFileDescription($file, 'a');
+
+        while($command = $this->waitInput('Input lexicon key [and value] or empty fo exit', true)){
+
+            $key = $command[0];
+            if(empty($key)){
+                $this->say("Key is empty. End lexicon [$lang/$theme] editing");
+                break;
+            }
+
+            $value = null;
+            if(count($command) > 1){
+                $value = join(' ', array_slice($command, 1));
+            }
+
+            $value = $this->waitInput('Input lexicon value', false, $value);
+
+            $lexicon = '$_lang[\''.$key.'\'] = ';
+            $lexicon .= "'".addslashes($value)."'";
+            $lexicon .= ";\n";
+
+            $this->say("Add line: $lexicon");
+
+            fputs($fd, $lexicon);
+
+        }
+
+        fclose($fd);
 
     }
 
@@ -209,6 +259,7 @@ Class ModxHelper
         $this->say('template - create template');
         $this->say('clear|clearCache - clear cache folder');
         $this->say('regNameSpace [namespace] - register new namespace');
+        $this->say('lexicon - manage lexicons');
 
         $this->say("\nThat's all you need to start. let's go!\n");
 
@@ -263,6 +314,15 @@ Class ModxHelper
         file_put_contents($fullPath, $content);
 
         return 'core/components/' . $relativePath;
+    }
+
+    private function fileExist($file)
+    {
+        return is_file(MODX_CORE_PATH . 'components/' . $this->nameSpace . '/' . $file);
+    }
+
+    private function getFileDescription($file, $option = 'r'){
+        return fopen(MODX_CORE_PATH . 'components/' . $this->nameSpace . '/' . $file, $option);
     }
 
     private function say($message)
