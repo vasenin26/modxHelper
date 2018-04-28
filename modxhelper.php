@@ -252,7 +252,7 @@ Class ModxHelper
     public function comHelp(...$args)
     {
 
-        $this->say('\nAvailable commands:');
+        $this->say("\nAvailable commands:\n");
 
         $this->say('chunk - create chunk');
         $this->say('snippet - create snippet');

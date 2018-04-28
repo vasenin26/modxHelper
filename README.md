@@ -39,6 +39,20 @@ Hi, i'm ModHelper. Input command
 Template created
 ````
 
+# Available Commands
+
+````
+D:\www\projectfolder>php modxhelper.php help
+Available commands:
+chunk - create chunk
+snippet - create snippet
+template - create template
+clear|clearCache - clear cache folder
+regNameSpace [namespace] - register new namespace
+lexicon - manage lexicons
+
+````
+
 # Elements namespace
 
 You can change name space for your elements, change variable $namespace in helper file
