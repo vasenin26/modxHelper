@@ -114,7 +114,7 @@ Class ModxHelper
     public function comTemplate(...$args)
     {
 
-        $templateId = $this->waitInput('Input template id (empty or ? for create new template)', false, $this->takeArgument($args));
+        $templateId = $this->waitInput('Input template id (empty of ? for create new template)', false, $this->takeArgument($args));
 
         $template = null;
 
@@ -199,7 +199,7 @@ Class ModxHelper
     private function waitInput($message, $slice = false, $input = null)
     {
 
-        if(!is_null($input)){
+        if(!empty($input)){
             return $input;
         }
 
