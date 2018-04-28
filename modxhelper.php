@@ -8,8 +8,6 @@ if (!defined('MODX_CONFIG_KEY')) {
 }
 require_once(MODX_CORE_PATH . 'model/modx/modx.class.php');
 
-$nameSpace = 'modxParts';
-
 //cli command support
 $command = empty($argv) ? null : array_slice($argv, 1);
 
@@ -28,7 +26,7 @@ Class ModxHelper
         $this->modx = new modX();
         $this->modx->initialize('mgr');
 
-        $this->nameSpace = $nameSpace;
+        $this->nameSpace = defined('MODX_HELPER_NAME_SPACE') ? MODX_HELPER_NAME_SPACE : 'modxParts';
 
     }
 
@@ -171,6 +169,36 @@ Class ModxHelper
 
     }
 
+    public function comRegNameSpace(...$args)
+    {
+
+        $nameSpace = $this->waitInput("Input namespace (empty for register default namespace ($this->nameSpace)",
+            false, $this->takeArgument($args));
+
+        if(empty($nameSpace)){
+            $nameSpace = $this->nameSpace;
+        }
+
+        $nameSpaceObject = $this->modx->getObject('modNamespace', $nameSpace);
+
+        if(empty($nameSpaceObject)){
+            $nameSpaceObject = $this->modx->newObject('modNamespace');
+            $nameSpaceObject->name = $nameSpace;
+        }
+
+        $nameSpaceObject->path = '{core_path}/components/' . $nameSpace;
+
+        if(!is_dir(MODX_CORE_PATH . 'components/' . $nameSpace)){
+            mkdir(MODX_CORE_PATH . 'components/' . $nameSpace, 0700, true);
+            $this->say('Namespace folder was created');
+        }
+
+        $nameSpaceObject->save();
+
+        $this->say("Namespace [$nameSpace] was registered");
+
+    }
+
     public function comHelp(...$args)
     {
 
@@ -180,6 +208,7 @@ Class ModxHelper
         $this->say('snippet - create snippet');
         $this->say('template - create template');
         $this->say('clear|clearCache - clear cache folder');
+        $this->say('regNameSpace [namespace] - register new namespace');
 
         $this->say("\nThat's all you need to start. let's go!\n");
 
@@ -199,7 +228,7 @@ Class ModxHelper
     private function waitInput($message, $slice = false, $input = null)
     {
 
-        if(!empty($input)){
+        if (!empty($input)) {
             return $input;
         }
 
@@ -250,7 +279,7 @@ Class ModxHelper
 
         $arg = current($args);
 
-        if($arg === false){
+        if ($arg === false) {
             return null;
         }
 
