@@ -10,7 +10,10 @@ require_once(MODX_CORE_PATH . 'model/modx/modx.class.php');
 
 $nameSpace = 'modxParts';
 
-(new ModxHelper($nameSpace))->waitCommand();
+//cli command support
+$command = empty($argv) ? null : array_slice($argv, 1);
+
+(new ModxHelper($nameSpace))->waitCommand($command);
 
 /* --- helper class --- */
 
@@ -29,10 +32,10 @@ Class ModxHelper
 
     }
 
-    public function waitCommand()
+    public function waitCommand($command = null)
     {
 
-        $command = $this->waitInput('Hi, i\'m ModHelper. Input command', true);
+        $command = $this->waitInput('Hi, i\'m ModHelper. Input command', true, $command);
 
         $this->runCommand($command[0], array_slice($command, 1));
 
@@ -111,7 +114,7 @@ Class ModxHelper
     public function comTemplate(...$args)
     {
 
-        $templateId = $this->waitInput('Input template id (empty of ? for create new template)', false, $this->takeArgument($args));
+        $templateId = $this->waitInput('Input template id (empty or ? for create new template)', false, $this->takeArgument($args));
 
         $template = null;
 
@@ -154,15 +157,17 @@ Class ModxHelper
     public function comClearCache(...$args)
     {
 
-        $delFolder = function ($dir) use (&$delFolder) {
+        $rmdir = function ($dir) use (&$rmdir) {
             $files = array_diff(scandir($dir), array('.', '..'));
             foreach ($files as $file) {
-                (is_dir("$dir/$file")) ? $delFolder("$dir/$file") : unlink("$dir/$file");
+                (is_dir("$dir/$file")) ? $rmdir("$dir/$file") : unlink("$dir/$file");
             }
             return rmdir($dir);
         };
 
-        return $delFolder(MODX_CORE_PATH . '/cache/.');
+        $rmdir(MODX_CORE_PATH . '/cache/.');
+
+        $this->say('MODX cache successfully cleared');
 
     }
 

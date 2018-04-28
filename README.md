@@ -8,7 +8,12 @@ For use this you need php in console. Put helper file in your project folder and
 php modxhelper.php
 ````
 
-helper works in the input wait mode, follow the tips to work.
+Helper works in the interactive mode, follow the tips to work. You can also transfer all commands as call parameters.
+
+````
+D:\www\projectfolder>php modxhelper.php clearCache
+MODX cache successfully cleared
+````
 
 You can see available commands if send 'help' command or empty input.
 
