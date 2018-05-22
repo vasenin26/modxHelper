@@ -56,10 +56,10 @@ lexicon - manage lexicons
 
 # Elements namespace
 
-You can change name space for your elements, change variable $namespace in helper file
+You can change name space for your elements, change constant MODX_HELPER_NAME_SPACE in helper file
 
 ```` php
-$nameSpace = 'modxParts';
+define('MODX_HELPER_NAME_SPACE', 'modxParts');
 ````
 
 files for your elements will be created in folder

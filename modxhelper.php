@@ -8,7 +8,7 @@ if (!defined('MODX_CONFIG_KEY')) {
 }
 require_once(MODX_CORE_PATH . 'model/modx/modx.class.php');
 
-define('MODX_HELPER_NAME_SPACE', 'voip_ru');
+define('MODX_HELPER_NAME_SPACE', 'modxParts');
 
 //cli command support
 $command = empty($argv) ? null : array_slice($argv, 1);
