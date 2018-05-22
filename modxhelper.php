@@ -8,6 +8,8 @@ if (!defined('MODX_CONFIG_KEY')) {
 }
 require_once(MODX_CORE_PATH . 'model/modx/modx.class.php');
 
+define('MODX_HELPER_NAME_SPACE', 'voip_ru');
+
 //cli command support
 $command = empty($argv) ? null : array_slice($argv, 1);
 
@@ -203,14 +205,14 @@ Class ModxHelper
     {
 
         $lang = $templateFileName = $this->waitInput('Input language code', false, $this->takeArgument($args));
-        if(empty($lang)){
+        if (empty($lang)) {
             $this->say("Language must by set. Exit");
             exit;
         }
 
         $theme = $templateFileName = $this->waitInput('Input theme name [default is empty]', false, $this->takeArgument($args));
 
-        if(empty($theme)) $theme = 'default';
+        if (empty($theme)) $theme = 'default';
 
         $file = "lexicon/$lang/$theme.inc.php";
 
@@ -220,23 +222,23 @@ Class ModxHelper
 
         $fd = $this->getFileDescription($file, 'a');
 
-        while($command = $this->waitInput('Input lexicon key [and value] or empty fo exit', true)){
+        while ($command = $this->waitInput('Input lexicon key [and value] or empty fo exit', true)) {
 
             $key = $command[0];
-            if(empty($key)){
+            if (empty($key)) {
                 $this->say("Key is empty. End lexicon [$lang/$theme] editing");
                 break;
             }
 
             $value = null;
-            if(count($command) > 1){
+            if (count($command) > 1) {
                 $value = join(' ', array_slice($command, 1));
             }
 
             $value = $this->waitInput('Input lexicon value', false, $value);
 
-            $lexicon = '$_lang[\''.$key.'\'] = ';
-            $lexicon .= "'".addslashes($value)."'";
+            $lexicon = '$_lang[\'' . $key . '\'] = ';
+            $lexicon .= "'" . addslashes($value) . "'";
             $lexicon .= ";\n";
 
             $this->say("Add line: $lexicon");
@@ -249,16 +251,64 @@ Class ModxHelper
 
     }
 
+    public function comSchema(...$args)
+    {
+
+        $manager = $this->modx->getManager();
+        $generator = $manager->getGenerator();
+
+        list($nameSpace, $fileName) = $this->waitInput("Input namespace (empty for create default namespace scheme ($this->nameSpace)\n
+You can send filename after namespace, to separate options use whitespace",
+
+            true, $this->takeArgument($args));
+
+        if (empty($nameSpace)) {
+            $nameSpace = $this->nameSpace;
+        }
+
+        if (empty($fileName)) {
+            $fileName = $nameSpace;
+        }
+
+        $packagePath = $this->modx->getOption('core_path') . 'components/' . $nameSpace . '/';
+        $modelPath = $packagePath . 'model/';
+        $schemaPath = $modelPath . 'schema/';
+
+        //to try find file or send proposal input other filename
+        do {
+
+            $schemaFile = $schemaPath . $fileName . '.mysql.schema.xml';
+
+            if (is_file($schemaFile)) {
+                break;
+            }
+
+            $this->say('Not found scheme file: [' . $schemaFile . ']');
+            $fileName = $this->waitInput('Input schema file name or empty for exit:',
+                false, $this->takeArgument($args));
+
+            if (empty($fileName)) {
+                return;
+            }
+
+        } while (!is_file($schemaFile));
+
+        $generator->parseSchema($schemaFile, $modelPath);
+
+        $this->say('Schema was success created. Do not forget to register the namespace!');
+    }
+
     public function comHelp(...$args)
     {
 
-        $this->say("\nAvailable commands:\n");
+        $this->say('\nAvailable commands:');
 
         $this->say('chunk - create chunk');
         $this->say('snippet - create snippet');
         $this->say('template - create template');
         $this->say('clear|clearCache - clear cache folder');
         $this->say('regNameSpace [namespace] - register new namespace');
+        $this->say('schema - generate database map from xPDO schema');
         $this->say('lexicon - manage lexicons');
 
         $this->say("\nThat's all you need to start. let's go!\n");
@@ -321,7 +371,8 @@ Class ModxHelper
         return is_file(MODX_CORE_PATH . 'components/' . $this->nameSpace . '/' . $file);
     }
 
-    private function getFileDescription($file, $option = 'r'){
+    private function getFileDescription($file, $option = 'r')
+    {
         return fopen(MODX_CORE_PATH . 'components/' . $this->nameSpace . '/' . $file, $option);
     }
 

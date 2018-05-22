@@ -49,6 +49,7 @@ snippet - create snippet
 template - create template
 clear|clearCache - clear cache folder
 regNameSpace [namespace] - register new namespace
+schema - generate database map from xPDO schema
 lexicon - manage lexicons
 
 ````
