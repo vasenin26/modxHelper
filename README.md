@@ -50,6 +50,7 @@ template - create template
 clear|clearCache - clear cache folder
 regNameSpace [namespace] - register new namespace
 schema - generate database map from xPDO schema
+snapshot - make dump of modDocument, modChunk and modSnippet into files for your git commit. It help to merge database changes with the remote site copy.
 lexicon - manage lexicons
 
 ````

@@ -1,11 +1,15 @@
 <?php
 
-if (!defined('MODX_CORE_PATH')) {
-    define('MODX_CORE_PATH', './core/');
-}
 if (!defined('MODX_CONFIG_KEY')) {
     define('MODX_CONFIG_KEY', 'config');
 }
+
+if (!defined('MODX_CORE_PATH')) {
+    define('MODX_CORE_PATH', './core/');
+}
+
+define('SNAPSHOT_FOLDER', MODX_CORE_PATH . 'snapshot/');
+
 require_once(MODX_CORE_PATH . 'model/modx/modx.class.php');
 
 define('MODX_HELPER_NAME_SPACE', 'modxParts');
@@ -298,6 +302,55 @@ You can send filename after namespace, to separate options use whitespace",
         $this->say('Schema was success created. Do not forget to register the namespace!');
     }
 
+    public function comSnapshot(...$args)
+    {
+
+        $types = [
+            'modDocument' => ['content'],
+            'modChunk' => ['snippet'],
+            'modSnippet' => ['snippet'],
+        ];
+
+        foreach ($types as $type => $fields) {
+            $objects = $this->modx->getCollection($type);
+
+            $objectsDir = SNAPSHOT_FOLDER . $type . '/';
+
+            if (!is_dir($objectsDir)) {
+                mkdir($objectsDir, 0777, true);
+            }
+
+            foreach ($objects as $object) {
+
+                $objectDir = $objectsDir . $object->id . '/';
+
+                if (!is_dir($objectDir)) {
+                    mkdir($objectDir, 0777, true);
+                }
+
+                $data = $object->toArray();
+
+                foreach ($fields as $field) {
+                    $fieldData = $data[$field] ?? null;
+                    unset($data[$field]);
+
+                    $fileName = $objectDir . $field . '.txt';
+
+                    file_put_contents($fileName, $fieldData);
+                    $this->say("Object $type $object->id field '$field'' put in $fileName");
+                }
+
+                $fileName = $objectDir . '_.json';
+                $data = json_encode($data, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE);
+
+                file_put_contents($fileName, $data);
+
+                $this->say("Object $type ID $object->id data put in $fileName");
+            }
+        }
+
+    }
+
     public function comHelp(...$args)
     {
 
@@ -309,6 +362,7 @@ You can send filename after namespace, to separate options use whitespace",
         $this->say('clear|clearCache - clear cache folder');
         $this->say('regNameSpace [namespace] - register new namespace');
         $this->say('schema - generate database map from xPDO schema');
+        $this->say('snapshot - make dump of modDocument, modChunk and modSnippet into files');
         $this->say('lexicon - manage lexicons');
 
         $this->say("\nThat's all you need to start. let's go!\n");
