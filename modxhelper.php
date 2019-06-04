@@ -304,51 +304,17 @@ You can send filename after namespace, to separate options use whitespace",
 
     public function comSnapshot(...$args)
     {
+        $com = $this->waitInput('Input way id (make(default) for create snapshot or fill for upload cnages into database)', false, $this->takeArgument($args));
 
-        $types = [
-            'modDocument' => ['content'],
-            'modChunk' => ['snippet'],
-            'modSnippet' => ['snippet'],
-        ];
-
-        foreach ($types as $type => $fields) {
-            $objects = $this->modx->getCollection($type);
-
-            $objectsDir = SNAPSHOT_FOLDER . $type . '/';
-
-            if (!is_dir($objectsDir)) {
-                mkdir($objectsDir, 0777, true);
-            }
-
-            foreach ($objects as $object) {
-
-                $objectDir = $objectsDir . $object->id . '/';
-
-                if (!is_dir($objectDir)) {
-                    mkdir($objectDir, 0777, true);
-                }
-
-                $data = $object->toArray();
-
-                foreach ($fields as $field) {
-                    $fieldData = $data[$field] ?? null;
-                    unset($data[$field]);
-
-                    $fileName = $objectDir . $field . '.txt';
-
-                    file_put_contents($fileName, $fieldData);
-                    $this->say("Object $type $object->id field '$field'' put in $fileName");
-                }
-
-                $fileName = $objectDir . '_.json';
-                $data = json_encode($data, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE);
-
-                file_put_contents($fileName, $data);
-
-                $this->say("Object $type ID $object->id data put in $fileName");
-            }
+        switch($com){
+            case '':
+            case 'make':
+                $this->makeSnapshot($args);
+                break;
+            case 'fill':
+                $this->fillSnapshotToDB($args);
+                break;
         }
-
     }
 
     public function comHelp(...$args)
@@ -451,5 +417,114 @@ You can send filename after namespace, to separate options use whitespace",
         next($args);
 
         return $arg;
+    }
+
+    private function makeSnapshot(&$args){
+
+        $types = [
+            'modDocument' => ['content'],
+            'modChunk' => ['snippet'],
+            'modSnippet' => ['snippet'],
+        ];
+
+        foreach ($types as $type => $fields) {
+            $objects = $this->modx->getCollection($type);
+
+            $objectsDir = SNAPSHOT_FOLDER . $type . '/';
+
+            if (!is_dir($objectsDir)) {
+                mkdir($objectsDir, 0777, true);
+            }
+
+            foreach ($objects as $object) {
+
+                $objectDir = $objectsDir . $object->id . '/';
+
+                if (!is_dir($objectDir)) {
+                    mkdir($objectDir, 0777, true);
+                }
+
+                $data = $object->toArray();
+
+                foreach ($fields as $field) {
+                    $fieldData = $data[$field] ?? null;
+                    unset($data[$field]);
+
+                    $fileName = $objectDir . $field . '.txt';
+
+                    file_put_contents($fileName, $fieldData);
+                    $this->say("Object $type $object->id field '$field'' put in $fileName");
+                }
+
+                $fileName = $objectDir . '_.json';
+                $data = json_encode($data, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE);
+
+                file_put_contents($fileName, $data);
+
+                $this->say("Object $type ID $object->id data put in $fileName");
+            }
+        }
+    }
+
+    private function fillSnapshotToDB(&$args){
+
+        $types = [
+            'modDocument' => ['content'],
+            'modChunk' => ['snippet'],
+            'modSnippet' => ['snippet'],
+        ];
+
+        foreach ($types as $type => $fields) {
+
+            $objectsDir = SNAPSHOT_FOLDER . $type . '/';
+
+            if (!is_dir($objectsDir)) {
+                continue;
+            }
+
+            $hd = opendir($objectsDir);
+
+            while(($id = readdir($hd)) !== false){
+                if($id == '.' || $id == '..'){
+                    continue;
+                }
+
+                $object = $this->modx->getObject($type, $id);
+
+                if(empty($object)){
+                    $object = $this->modx->newObject($type);
+                    $object->id = $id;
+                    $this->say("Object $type ID $id was create");
+                }else{
+                    $this->say("Object $type ID $id was found");
+                }
+
+                $objectDir = $objectsDir . $id . '/';
+
+                $data = file_get_contents($objectDir . '_.json');
+                $data = json_decode($data, true);
+
+                $object->fromArray($data ?? []);
+                $this->say("Object $type ID $id data loaded");
+
+                foreach($fields as $field){
+                    $file = $objectDir . $field . '.txt';
+                    if(!is_file($file)){
+                        $this->say("File for field $field not found");
+                        continue;
+                    }
+
+                    $content = file_get_contents($file);
+                    $object->$field = $content ?? '';
+
+                    $this->say("Data for field $field was load");
+                }
+
+                $object->save();
+
+            }
+        }
+
+        closedir($hd);
     }
 }
